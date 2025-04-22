@@ -18,24 +18,8 @@
       <input type="time" name="salida" class="form-control" required>
     </div>
     <div class="col-md-2">
-      <label for="almuerzo" class="form-label">Tiempo de almuerzo</label>
+      <label for="almuerzo" class="form-label">Almuerzo</label>
       <input type="time" name="almuerzo" class="form-control" required>
-    </div>
-    <div class="col-md-2">
-      <label for="viaje_ida" class="form-label">Viaje Ida (h)</label>
-      <input type="number" step="0.01" name="viaje_ida" class="form-control">
-    </div>
-    <div class="col-md-2">
-      <label for="viaje_vuelta" class="form-label">Viaje Vuelta (h)</label>
-      <input type="number" step="0.01" name="viaje_vuelta" class="form-control">
-    </div>
-    <div class="col-md-2">
-      <label for="km_ida" class="form-label">KM Ida</label>
-      <input type="number" step="0.1" name="km_ida" class="form-control">
-    </div>
-    <div class="col-md-2">
-      <label for="km_vuelta" class="form-label">KM Vuelta</label>
-      <input type="number" step="0.1" name="km_vuelta" class="form-control">
     </div>
     <div class="col-md-4">
       <label for="tarea" class="form-label">Tarea</label>
@@ -72,11 +56,7 @@
           <th>Fecha</th>
           <th>Entrada</th>
           <th>Salida</th>
-          <th>Tiempo de Almuerzo</th>
-          <th>Viaje Ida</th>
-          <th>Viaje Vuelta</th>
-          <th>KM Ida</th>
-          <th>KM Vuelta</th>
+          <th>Almuerzo</th>
           <th>Horas Trabajadas</th>
           <th>Tarea</th>
           <th>Cliente</th>
@@ -93,10 +73,6 @@
           <td>{{ registro.entrada }}</td>
           <td>{{ registro.salida }}</td>
           <td>{{ registro.almuerzo }}</td>
-          <td>{{ registro.viaje_ida }}</td>
-          <td>{{ registro.viaje_vuelta }}</td>
-          <td>{{ registro.km_ida }}</td>
-          <td>{{ registro.km_vuelta }}</td>
           <td>{{ registro.horas }}</td>
           <td>{{ registro.tarea }}</td>
           <td>{{ registro.cliente }}</td>
