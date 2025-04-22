@@ -100,8 +100,9 @@ def dashboard():
         entrada = request.form['entrada']
         salida = request.form['salida']
 
-        almuerzo = request.form.get('almuerzo')
-        almuerzo = convertir_hora_a_decimal(almuerzo) if almuerzo else 0
+        almuerzo_horas = int(request.form.get('almuerzo_horas', 0))
+        almuerzo_minutos = int(request.form.get('almuerzo_minutos', 0))
+        almuerzo = almuerzo_horas + (almuerzo_minutos / 60)
 
         try:
             viaje_ida = float(request.form.get('viaje_ida', 0) or 0)
