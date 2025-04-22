@@ -51,19 +51,19 @@
                             <span class="nav-link">Bienvenido, {{ session['username'] }} ({{ session['role'] }})</span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                            <a class="nav-link" href="{{ url_for('dashboard') }}">Inicio</a>
                         </li>
                         {% if session['role'] == 'superadmin' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+                                <a class="nav-link" href="{{ url_for('admin') }}">Administración</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('crear_admin') }}">Crear Admin</a>
+                                <a class="nav-link" href="{{ url_for('crear_admin') }}">Crear Administrador</a>
                             </li>
                         {% endif %}
                         {% if session['role'] == 'admin' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+                                <a class="nav-link" href="{{ url_for('admin') }}">Administración</a>
                             </li>
                         {% endif %}
                         
