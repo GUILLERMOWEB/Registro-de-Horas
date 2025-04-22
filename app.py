@@ -100,9 +100,14 @@ def dashboard():
         entrada = request.form['entrada']
         salida = request.form['salida']
 
-        almuerzo_horas = int(request.form.get('almuerzo_horas', 0))
-        almuerzo_minutos = int(request.form.get('almuerzo_minutos', 0))
-        almuerzo = almuerzo_horas + (almuerzo_minutos / 60)  # Convertir almuerzo a decimal
+        try:
+            almuerzo_horas = int(request.form.get('almuerzo_horas', 0))
+            almuerzo_minutos = int(request.form.get('almuerzo_minutos', 0))
+        except ValueError:
+            flash("El tiempo de almuerzo debe ser un número válido", "danger")
+            return redirect(url_for('dashboard'))
+
+        almuerzo = timedelta(hours=almuerzo_horas, minutes=almuerzo_minutos)
 
         try:
             viaje_ida = float(request.form.get('viaje_ida', 0) or 0)
@@ -110,31 +115,33 @@ def dashboard():
             km_ida = float(request.form.get('km_ida', 0) or 0)
             km_vuelta = float(request.form.get('km_vuelta', 0) or 0)
         except ValueError:
-            flash("Las horas de viaje y kilómetros deben ser números.", "danger")
+            flash("Las horas de viaje y kilómetros deben ser números válidos.", "danger")
             return redirect(url_for('dashboard'))
 
-        tarea = request.form.get('tarea', '')
-        cliente = request.form.get('cliente', '')
-        comentarios = request.form.get('comentarios', '')
+        tarea = request.form.get('tarea', '').strip()
+        cliente = request.form.get('cliente', '').strip()
+        comentarios = request.form.get('comentarios', '').strip()
 
         try:
             formato_hora = "%H:%M"
             t_entrada = datetime.strptime(entrada, formato_hora)
             t_salida = datetime.strptime(salida, formato_hora)
 
-            # Calcular las horas trabajadas (restando el tiempo de almuerzo)
-            horas_trabajadas = (t_salida - t_entrada - timedelta(hours=almuerzo)).total_seconds() / 3600
+            if t_salida < t_entrada:
+                t_salida += timedelta(days=1)
+
+            tiempo_total = t_salida - t_entrada - almuerzo
+            horas_trabajadas = tiempo_total.total_seconds() / 3600
         except ValueError:
-            flash("Error en el formato de hora. Use HH:MM", "danger")
+            flash("Formato de hora incorrecto. Use HH:MM.", "danger")
             return redirect(url_for('dashboard'))
 
-        # Crear nuevo registro
         nuevo_registro = Registro(
             user_id=session['user_id'],
             fecha=fecha,
             entrada=entrada,
             salida=salida,
-            almuerzo=almuerzo,
+            almuerzo=round(almuerzo.total_seconds() / 3600, 2),
             horas=round(horas_trabajadas, 2),
             viaje_ida=viaje_ida,
             viaje_vuelta=viaje_vuelta,
@@ -144,6 +151,7 @@ def dashboard():
             cliente=cliente,
             comentarios=comentarios
         )
+
         db.session.add(nuevo_registro)
         db.session.commit()
         flash('Registro guardado exitosamente', category='success')
@@ -158,15 +166,24 @@ def dashboard():
 
     registros = registros_query.order_by(Registro.fecha.desc()).all()
 
-    total_horas = sum([(r.horas or 0) + (r.viaje_ida or 0) + (r.viaje_vuelta or 0) for r in registros])
-    total_km = sum([(r.km_ida or 0) + (r.km_vuelta or 0) for r in registros])
+    total_horas = sum([
+        (r.horas or 0) + (r.viaje_ida or 0) + (r.viaje_vuelta or 0)
+        for r in registros
+    ])
+    total_km = sum([
+        (r.km_ida or 0) + (r.km_vuelta or 0)
+        for r in registros
+    ])
 
-    return render_template('dashboard.html',
-                           username=session['username'],
-                           role=session['role'],
-                           registros=registros,
-                           total_horas=round(total_horas, 2),
-                           total_km=round(total_km, 2))
+    return render_template(
+        'dashboard.html',
+        username=session['username'],
+        role=session['role'],
+        registros=registros,
+        total_horas=round(total_horas, 2),
+        total_km=round(total_km, 2)
+    )
+
 
 
 
@@ -227,19 +244,65 @@ def exportar_excel():
 
 @app.route('/editar_registro/<int:id>', methods=['GET', 'POST'])
 def editar_registro(id):
+    registro = Registro.query.get_or_404(id)
+
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    registro = Registro.query.get_or_404(id)
-
     if request.method == 'POST':
-        registro.fecha = request.form['fecha']
-        registro.horas = request.form['horas']
-        registro.tarea = request.form['tarea']
-        db.session.commit()
-        return redirect(url_for('admin') if session['role'] == 'superadmin' else url_for('dashboard'))
+        # Recoger los datos del formulario
+        fecha = request.form['fecha']
+        entrada = request.form['entrada']
+        salida = request.form['salida']
 
-    return render_template('editar_registro.html', registro=registro, id=id)
+        almuerzo_horas = int(request.form.get('almuerzo_horas', 0))
+        almuerzo_minutos = int(request.form.get('almuerzo_minutos', 0))
+        almuerzo = almuerzo_horas + (almuerzo_minutos / 60)  # Convertir almuerzo a decimal
+
+        try:
+            viaje_ida = float(request.form.get('viaje_ida', 0) or 0)
+            viaje_vuelta = float(request.form.get('viaje_vuelta', 0) or 0)
+            km_ida = float(request.form.get('km_ida', 0) or 0)
+            km_vuelta = float(request.form.get('km_vuelta', 0) or 0)
+        except ValueError:
+            flash("Las horas de viaje y kilómetros deben ser números.", "danger")
+            return redirect(url_for('editar_registro', id=id))
+
+        tarea = request.form.get('tarea', '')
+        cliente = request.form.get('cliente', '')
+        comentarios = request.form.get('comentarios', '')
+
+        try:
+            formato_hora = "%H:%M"
+            t_entrada = datetime.strptime(entrada, formato_hora)
+            t_salida = datetime.strptime(salida, formato_hora)
+
+            # Calcular las horas trabajadas (restando el tiempo de almuerzo)
+            horas_trabajadas = (t_salida - t_entrada - timedelta(hours=almuerzo)).total_seconds() / 3600
+        except ValueError:
+            flash("Error en el formato de hora. Use HH:MM", "danger")
+            return redirect(url_for('editar_registro', id=id))
+
+        # Actualizar el registro
+        registro.fecha = fecha
+        registro.entrada = entrada
+        registro.salida = salida
+        registro.almuerzo = almuerzo
+        registro.horas = round(horas_trabajadas, 2)
+        registro.viaje_ida = viaje_ida
+        registro.viaje_vuelta = viaje_vuelta
+        registro.km_ida = km_ida
+        registro.km_vuelta = km_vuelta
+        registro.tarea = tarea
+        registro.cliente = cliente
+        registro.comentarios = comentarios
+
+        db.session.commit()
+        flash('Registro actualizado exitosamente', category='success')
+        return redirect(url_for('dashboard'))
+
+    return render_template('editar_registro.html', registro=registro)
+
 
 @app.route('/borrar_registro/<int:id>', methods=['POST'])
 def borrar_registro(id):
