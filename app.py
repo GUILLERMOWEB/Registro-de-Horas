@@ -102,7 +102,7 @@ def dashboard():
 
         almuerzo_horas = int(request.form.get('almuerzo_horas', 0))
         almuerzo_minutos = int(request.form.get('almuerzo_minutos', 0))
-        almuerzo = almuerzo_horas + (almuerzo_minutos / 60)
+        almuerzo = almuerzo_horas + (almuerzo_minutos / 60)  # Convertir almuerzo a decimal
 
         try:
             viaje_ida = float(request.form.get('viaje_ida', 0) or 0)
@@ -121,11 +121,14 @@ def dashboard():
             formato_hora = "%H:%M"
             t_entrada = datetime.strptime(entrada, formato_hora)
             t_salida = datetime.strptime(salida, formato_hora)
+
+            # Calcular las horas trabajadas (restando el tiempo de almuerzo)
             horas_trabajadas = (t_salida - t_entrada - timedelta(hours=almuerzo)).total_seconds() / 3600
         except ValueError:
             flash("Error en el formato de hora. Use HH:MM", "danger")
             return redirect(url_for('dashboard'))
 
+        # Crear nuevo registro
         nuevo_registro = Registro(
             user_id=session['user_id'],
             fecha=fecha,
@@ -146,7 +149,7 @@ def dashboard():
         flash('Registro guardado exitosamente', category='success')
         return redirect(url_for('dashboard'))
 
-    # GET - mostrás los registros y total de horas
+    # GET - mostrar los registros y total de horas
     filtros = request.args
     registros_query = Registro.query.filter_by(user_id=session['user_id'])
 
@@ -164,6 +167,7 @@ def dashboard():
                            registros=registros,
                            total_horas=round(total_horas, 2),
                            total_km=round(total_km, 2))
+
 
 
 @app.route('/exportar_excel')
