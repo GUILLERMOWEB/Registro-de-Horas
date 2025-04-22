@@ -85,6 +85,7 @@
           <th>Cliente</th>
           <th>Comentarios</th>
           <th>ID</th>
+          <th>Editar</th>
           <th>Eliminar</th>
         </tr>
       </thead>
@@ -108,7 +109,7 @@
           <td>
             <a href="{{ url_for('editar_registro', id=registro.id) }}" class="btn btn-warning btn-sm">Editar</a>
           </td>
-            
+          <td>
             <form method="POST" action="{{ url_for('borrar_registro', id=registro.id) }}" onsubmit="return confirm('¿Estás seguro de que querés eliminar este registro?');">
               <input type="hidden" name="registro_id" value="{{ registro.id }}">
               <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
