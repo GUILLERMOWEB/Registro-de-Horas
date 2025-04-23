@@ -3,4 +3,5 @@ openpyxl
 flask_sqlalchemy
 psycopg2-binary
 pandas
-gunicorn
+gunicorn==21.2.0
+
