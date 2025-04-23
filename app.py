@@ -24,6 +24,7 @@ app = Flask(__name__)
 app.secret_key = 'clave_secreta_para_sesiones'
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.jinja_env.cache = {}
 
 # Configuración para PostgreSQL
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
